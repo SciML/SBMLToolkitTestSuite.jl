@@ -63,7 +63,7 @@ function to_concentrations(sol, ml, res_df, ia)
 end
 
 "plots the difference between the suites' reported solution and DiffEq's sol"
-function verify_plot(case, sys, solm, resm, ts)
+function verify_plot(case, sys, solm, resm, ts, logdir)
     open(joinpath(logdir, case*".txt"), "w") do file
         write(file, "Reactions:\n")
         write(file, repr(equations(sys))*"\n")
@@ -91,7 +91,7 @@ function read_case(case)
     (sbml, settings, res_df)
 end
 
-function verify_case(case; verbose=true)
+function verify_case(case, logdir; verbose=true)
     k = 0
     diffeq_retcode = :nothing
     expected_err = false
@@ -142,7 +142,7 @@ function verify_case(case; verbose=true)
         solm = Matrix(sol_df)
         resm = Matrix(res_df[:, [c for c in names(sol_df) if c in names(res_df)]])
         res = isapprox(solm, resm; atol=1e-9, rtol=3e-2)
-        res || verify_plot(case, sys, solm, resm, ts)
+        res || verify_plot(case, sys, solm, resm, ts, logdir)
     catch e
         err = string(e)
         expected_err = any(occursin.(expected_errs, err))
@@ -155,12 +155,12 @@ function verify_case(case; verbose=true)
     end
 end
 
-function verify_all(case_ids; verbose=true)
+function verify_all(case_ids, logdir; verbose=true)
     cases = getcases(case_ids)
     df = DataFrame(case=String[], expected_err=Bool[], res=Bool[],
                    error=String[], k=Int64[], diffeq_retcode=Symbol[])
     for case in cases
-        ret = verify_case(case; verbose=verbose)
+        ret = verify_case(case, logdir; verbose=verbose)
         verbose && @info ret 
         push!(df, ret)
     end
