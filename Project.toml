@@ -14,7 +14,13 @@ SBMLToolkit = "86080e66-c8ac-44c2-a1a0-9adaadfe4a4e"
 Sundials = "c3572dad-4567-51f8-b174-8c6c989267f4"
 
 [compat]
+CSV = "0.10"
+DataFrames = "1"
+ModelingToolkit = "8"
 OrdinaryDiffEq = "6"
+Plots = "1"
+SBMLToolkit = "0.1"
+Sundials = "4"
 
 [extras]
 SafeTestsets = "1bc83da4-3b8d-516f-aca4-4fe02f6d838f"
