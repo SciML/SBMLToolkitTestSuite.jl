@@ -4,7 +4,7 @@ using Test
 const case_ids = [1:2...]
 
 const logdir = joinpath(@__DIR__, "logs")
-ispath(logdir) && rm(logdir,recursive=true)
+ispath(logdir) && rm(logdir, recursive = true)
 mkdir(logdir)
 
 df = verify_all(case_ids, logdir)
