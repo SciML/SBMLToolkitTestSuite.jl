@@ -14,6 +14,7 @@ SBMLToolkit = "86080e66-c8ac-44c2-a1a0-9adaadfe4a4e"
 Sundials = "c3572dad-4567-51f8-b174-8c6c989267f4"
 
 [compat]
+SBMLToolkit = "0.1"
 Sundials = "4"
 
 [extras]
