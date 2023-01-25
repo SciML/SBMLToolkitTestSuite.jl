@@ -101,7 +101,7 @@ function verify_case(case, logdir; verbose = true)
         SBMLToolkit.checksupport_string(sbml)
         ml = readSBMLFromString(sbml, doc -> begin
                                     set_level_and_version(3, 2)(doc)
-                                    convert_simplify_math(doc)
+                                    convert_promotelocals_expandfuns(doc)
                                 end)
         # ia = readSBMLFromString(sbml, doc -> begin
         #     set_level_and_version(3, 2)(doc)
