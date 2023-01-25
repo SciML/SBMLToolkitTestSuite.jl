@@ -162,7 +162,7 @@ function verify_all(case_ids, logdir; verbose = true)
     for case in cases
         ret = verify_case(case, logdir; verbose = verbose)
         verbose && @info ret
-        push!(df, ret, promote=true)
+        push!(df, ret, promote = true)
     end
     verbose && print(df)
     fn = joinpath(logdir, "test_suite_$(cases[1])-$(cases[end]).csv")
