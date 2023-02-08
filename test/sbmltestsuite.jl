@@ -1,7 +1,7 @@
 using SBMLToolkitTestSuite
 using Test
 
-const case_ids = [1:2...]  # 1822
+const case_ids = [1:1822...]
 
 const logdir = joinpath(@__DIR__, "logs")
 ispath(logdir) && rm(logdir, recursive = true)
