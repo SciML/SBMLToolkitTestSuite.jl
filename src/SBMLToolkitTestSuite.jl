@@ -134,7 +134,7 @@ function verify_case(case, logdir; verbose = true)
         sol = solve(prob, algorithm; abstol = settings["absolute"] / f,
                     reltol = settings["relative"] / f)
         diffeq_retcode = sol.retcode
-        k = diffeq_retcode == :Success ? 6 : k
+        k = SciMLBase.successful_retcode(diffeq_retcode) ? 6 : k
 
         sol_df = to_concentrations(sol, ml, res_df, ia)
         CSV.write(joinpath(logdir, "SBMLTk_" * case * ".csv"), sol_df)
