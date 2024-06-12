@@ -19,7 +19,7 @@ DataFrames = "1"
 ModelingToolkit = "8"
 OrdinaryDiffEq = "6"
 Plots = "1"
-SBMLToolkit = "0.1"
+SBMLToolkit = "0.1.20"
 Sundials = "4"
 julia = "1.9"
 
