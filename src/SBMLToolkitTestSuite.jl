@@ -5,18 +5,18 @@ using ModelingToolkit, OrdinaryDiffEq, Sundials
 using CSV, DataFrames, Downloads, Plots
 
 const algomap = Dict("00177" => Rodas4(),
-                     "00170" => Rodas5(),
-                     "00305" => Rodas5(),
-                     "00325" => Rodas5(),
-                     "00862" => Rodas4(),
-                     "00863" => Rodas4(),
-                     "00864" => Rodas4(),
-                     "00882" => Rodas4())
+    "00170" => Rodas5(),
+    "00305" => Rodas5(),
+    "00325" => Rodas5(),
+    "00862" => Rodas4(),
+    "00863" => Rodas4(),
+    "00864" => Rodas4(),
+    "00882" => Rodas4())
 
 const special_tolerances = Dict("00172" => 100,
-                                "00201" => 100,
-                                "00358" => 100,
-                                "00387" => 100)
+    "00201" => 100,
+    "00358" => 100,
+    "00387" => 100)
 
 const expected_errs = ["are not yet implemented.",
     "Please make reaction irreversible or rearrange kineticLaw to the form `term1 - term2`.",
@@ -100,9 +100,9 @@ function verify_case(case, logdir; verbose = true)
         # Read SBML
         SBMLToolkit.checksupport_string(sbml)
         ml = readSBMLFromString(sbml, doc -> begin
-                                    set_level_and_version(3, 2)(doc)
-                                    convert_simplify_math(doc)
-                                end)
+            set_level_and_version(3, 2)(doc)
+            convert_simplify_math(doc)
+        end)
         # ia = readSBMLFromString(sbml, doc -> begin
         #     set_level_and_version(3, 2)(doc)
         # end)
@@ -115,7 +115,7 @@ function verify_case(case, logdir; verbose = true)
         k = 2
 
         sys = convert(ODESystem, rs; include_zero_odes = true,
-                      combinatoric_ratelaws = false)
+            combinatoric_ratelaws = false)
         if length(ml.events) > 0
             sys = ODESystem(ml)
         end
@@ -126,13 +126,13 @@ function verify_case(case, logdir; verbose = true)
 
         ts = res_df[:, 1]  # LinRange(settings["start"], settings["duration"], settings["steps"]+1)
         prob = ODEProblem(ssys, Pair[], (settings["start"], Float64(settings["duration"]));
-                          saveat = ts)
+            saveat = ts)
         k = 5
 
         algorithm = get(algomap, case, Sundials.CVODE_BDF())
         f = get(special_tolerances, case, 1.0)
         sol = solve(prob, algorithm; abstol = settings["absolute"] / f,
-                    reltol = settings["relative"] / f)
+            reltol = settings["relative"] / f)
         diffeq_retcode = sol.retcode
         k = SciMLBase.successful_retcode(diffeq_retcode) ? 6 : k
 
@@ -158,11 +158,11 @@ end
 function verify_all(case_ids, logdir; verbose = true)
     cases = getcases(case_ids)
     df = DataFrame(case = String[], expected_err = Bool[], res = Bool[],
-                   error = String[], k = Int64[], diffeq_retcode = Symbol[])
+        error = String[], k = Int64[], diffeq_retcode = Symbol[])
     for case in cases
         ret = verify_case(case, logdir; verbose = verbose)
         verbose && @info ret
-        push!(df, ret, promote=true)
+        push!(df, ret, promote = true)
     end
     verbose && print(df)
     fn = joinpath(logdir, "test_suite_$(cases[1])-$(cases[end]).csv")
