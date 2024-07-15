@@ -25,7 +25,7 @@ open(joinpath(logdir, "current_results.json"), "w") do io
 end
 
 # Compare current results with previous results and log the results
-passed_cases = 0
+global passed_cases = 0
 total_cases = length(current_results)
 
 for (case_id, result) in current_results
