@@ -30,7 +30,7 @@ total_cases = length(current_results)
 
 for (case_id, result) in current_results
     if haskey(prev_results, case_id)
-        @test result==prev_results[case_id]
+        @test result == prev_results[case_id]
     end
     if result
         passed_cases += 1
