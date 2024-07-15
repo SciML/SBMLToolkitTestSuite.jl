@@ -1,7 +1,7 @@
 name = "SBMLToolkitTestSuite"
 uuid = "792e603a-1588-414c-b272-614011baa40e"
 authors = ["paulflang", "anandijain"]
-version = "0.0.3"
+version = "0.0.4"
 
 [deps]
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
