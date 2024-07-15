@@ -29,8 +29,7 @@ let passed_cases = 0
     total_cases = length(current_results)
 
     for (case_id, result) in current_results
-        if        @test result==prev_resu        @test result == prev_results[case_id]
-
+        if @test result==prev_resu @test result == prev_results[case_id]
         end
         if result
             passed_cases += 1
