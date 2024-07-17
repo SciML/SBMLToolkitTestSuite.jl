@@ -3,6 +3,7 @@ using Test
 using JSON
 
 const case_ids = [1:1822...]
+case_ids = [1]
 
 const logdir = joinpath(@__DIR__, "logs")
 ispath(logdir) && rm(logdir, recursive = true)
@@ -34,7 +35,7 @@ end
 # Log the results
 n_download_errors = sum(startswith.("Downloads.RequestError", df[:, "error"]))
 total_cases = length(case_ids) - n_download_errors
-passed_cases = sum(df[i, "res"])
+passed_cases = sum(df[:, "res"])
 open(joinpath(logdir, "test_summary.log"), "w") do io
     println(io, "Total cases: $total_cases")
     println(io, "Passed cases: $passed_cases")
