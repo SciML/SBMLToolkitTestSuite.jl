@@ -32,7 +32,7 @@ for (case_id, result) in current_results
 end
 
 # Log the results
-n_download_errors = sum(startswith.("Downloads.RequestError", df[:, "err"]))
+n_download_errors = sum(startswith.("Downloads.RequestError", df[:, "error"]))
 total_cases = length(case_ids) - n_download_errors
 passed_cases = sum(df[i, "res"])
 open(joinpath(logdir, "test_summary.log"), "w") do io
