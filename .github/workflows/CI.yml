@@ -21,7 +21,7 @@ jobs:
       # Download previous test results
       - name: Download previous test results
         id: download_results
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: previous_results
           path: test/logs
