@@ -111,7 +111,7 @@ function verify_case(case, logdir; verbose = true)
         ia = Dict()  # Todo: figure out if ia are divided by volume or not (688 isn't)
         k = 1
 
-        rs = ReactionSystem(ml)
+        rs = complete(ReactionSystem(ml))
         k = 2
 
         sys = convert(ODESystem, rs; include_zero_odes = true,
