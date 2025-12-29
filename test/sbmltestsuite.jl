@@ -2,8 +2,7 @@ using SBMLToolkitTestSuite
 using Test
 using JSON
 
-const case_ids = [1:1822...]
-case_ids = [1]
+case_ids = [1:1822...]
 
 const logdir = joinpath(@__DIR__, "logs")
 ispath(logdir) && rm(logdir, recursive = true)
