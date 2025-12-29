@@ -2,8 +2,6 @@ using SBMLToolkitTestSuite
 using Test
 using JSON
 
-# Full test suite: case_ids = [1:1822...]
-# For CI, just run a subset to keep tests fast
 case_ids = [1:1822...]
 
 const logdir = joinpath(@__DIR__, "logs")
