@@ -1,7 +1,7 @@
 name = "SBMLToolkitTestSuite"
 uuid = "792e603a-1588-414c-b272-614011baa40e"
-authors = ["paulflang", "anandijain"]
 version = "0.0.5"
+authors = ["paulflang", "anandijain"]
 
 [deps]
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
@@ -10,23 +10,27 @@ Downloads = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
 ModelingToolkit = "961ee093-0014-501f-94e3-6117800e7a78"
 OrdinaryDiffEq = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
+SBML = "e5567a89-2604-4b09-9718-f5f78e97c3bb"
 SBMLToolkit = "86080e66-c8ac-44c2-a1a0-9adaadfe4a4e"
 Sundials = "c3572dad-4567-51f8-b174-8c6c989267f4"
 
 [compat]
 CSV = "0.10"
 DataFrames = "1"
+JET = "0.9, 0.10, 0.11"
 ModelingToolkit = "8, 9"
 OrdinaryDiffEq = "6"
 Plots = "1"
+SBML = "1"
 SBMLToolkit = "0.1"
 Sundials = "4"
 julia = "1.9"
 
 [extras]
+JET = "c3a54625-cd67-489e-a8e7-0a5a0ff4e31b"
 JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 SafeTestsets = "1bc83da4-3b8d-516f-aca4-4fe02f6d838f"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["JSON", "SafeTestsets", "Test"]
+test = ["JET", "JSON", "SafeTestsets", "Test"]

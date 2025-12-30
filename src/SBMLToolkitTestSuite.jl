@@ -1,6 +1,8 @@
 module SBMLToolkitTestSuite
 
 using SBMLToolkit
+using SBMLToolkit: convert_simplify_math
+using SBML
 using ModelingToolkit, OrdinaryDiffEq, Sundials
 using CSV, DataFrames, Downloads, Plots
 
@@ -25,18 +27,38 @@ const expected_errs = ["are not yet implemented.",
     "RequestError(",
     "neither reactions or rateRules"]
 
-function getcases(case_ids)
+function getcases(case_ids::AbstractVector{<:Integer})
     map(x -> x[(end - 4):end], .*("0000", string.(case_ids)))
 end
 
-function setup_settings_txt(text)
+"""
+    setup_settings_txt(text::AbstractString) -> Dict{String, Union{Int, Float64}}
+
+Parse settings from an SBML test case settings file.
+Returns a dictionary mapping setting names to their numeric values.
+"""
+function setup_settings_txt(text::AbstractString)
     ls = split(text, "\n")
     spls = split.(ls, ": ")
     filter!(x -> length(x) == 2, spls)
-    Dict(map(x -> x[1] => Meta.parse(x[2]), spls))
+    result = Dict{String, Union{Int, Float64}}()
+    for parts in spls
+        key = String(parts[1])
+        val = Meta.parse(parts[2])
+        if val isa Int
+            result[key] = val
+        elseif val isa Float64
+            result[key] = val
+        elseif val isa Integer
+            result[key] = Int(val)
+        elseif val isa Real
+            result[key] = Float64(val)
+        end
+    end
+    result
 end
 
-function to_concentrations(sol, ml, res_df, ia)
+function to_concentrations(sol, ml::SBML.Model, res_df::DataFrame, ia::Dict)
     volumes = [1.0]
     sol_df = DataFrame(sol)
     for sn in names(sol_df)[2:end]
@@ -60,7 +82,8 @@ function to_concentrations(sol, ml, res_df, ia)
 end
 
 "plots the difference between the suites' reported solution and DiffEq's sol"
-function verify_plot(case, sys, solm, resm, ts, logdir)
+function verify_plot(case::AbstractString, sys, solm::AbstractMatrix, resm::AbstractMatrix,
+                     ts::AbstractVector, logdir::AbstractString)
     open(joinpath(logdir, case * ".txt"), "w") do file
         write(file, "Reactions:\n")
         write(file, repr(equations(sys)) * "\n")
@@ -72,7 +95,7 @@ function verify_plot(case, sys, solm, resm, ts, logdir)
     savefig(joinpath(logdir, case * ".png"))
 end
 
-function read_case(case)
+function read_case(case::AbstractString)
     base_url = "https://raw.githubusercontent.com/sbmlteam/sbml-test-suite/master/cases/semantic/$case/$case"
     sbml_url = base_url * "-sbml-l3v2.xml"
     settings_url = base_url * "-settings.txt"
@@ -88,7 +111,7 @@ function read_case(case)
     (sbml, settings, res_df)
 end
 
-function verify_case(case, logdir; verbose = true)
+function verify_case(case::AbstractString, logdir::AbstractString; verbose::Bool = true)
     k = 0
     diffeq_retcode = :nothing
     expected_err = false
@@ -155,7 +178,7 @@ function verify_case(case, logdir; verbose = true)
     end
 end
 
-function verify_all(case_ids, logdir; verbose = true)
+function verify_all(case_ids::AbstractVector{<:Integer}, logdir::AbstractString; verbose::Bool = true)
     cases = getcases(case_ids)
     df = DataFrame(case = String[], expected_err = Bool[], res = Bool[],
         error = String[], k = Int64[], diffeq_retcode = Symbol[])
