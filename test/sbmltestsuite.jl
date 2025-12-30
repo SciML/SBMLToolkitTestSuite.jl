@@ -2,9 +2,7 @@ using SBMLToolkitTestSuite
 using Test
 using JSON
 
-# Full case IDs range: 1:1822
-# For regular testing, only run case 1
-const case_ids = [1]
+const case_ids = [1:1822...]
 
 const logdir = joinpath(@__DIR__, "logs")
 ispath(logdir) && rm(logdir, recursive = true)

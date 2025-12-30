@@ -16,7 +16,7 @@ jobs:
         arch:
           - x64
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       # Download previous test results
       - name: Download previous test results
@@ -45,7 +45,7 @@ jobs:
       - uses: julia-actions/julia-runtest@v1
 
       # Upload current test results and summary
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: failure() || success()
         with:
           name: test_logs
