@@ -6,29 +6,35 @@ using SBML
 using ModelingToolkit, OrdinaryDiffEq, Sundials
 using CSV, DataFrames, Downloads, Plots
 
-const algomap = Dict("00177" => Rodas4(),
+const algomap = Dict(
+    "00177" => Rodas4(),
     "00170" => Rodas5(),
     "00305" => Rodas5(),
     "00325" => Rodas5(),
     "00862" => Rodas4(),
     "00863" => Rodas4(),
     "00864" => Rodas4(),
-    "00882" => Rodas4())
+    "00882" => Rodas4()
+)
 
-const special_tolerances = Dict("00172" => 100,
+const special_tolerances = Dict(
+    "00172" => 100,
     "00201" => 100,
     "00358" => 100,
-    "00387" => 100)
+    "00387" => 100
+)
 
-const expected_errs = ["are not yet implemented.",
+const expected_errs = [
+    "are not yet implemented.",
     "Please make reaction irreversible or rearrange kineticLaw to the form `term1 - term2`.",
     "COBREXA.jl",  # Occurs when model requires fbc package
     "Stoichiometry must be a non-negative integer.",
     "RequestError(",
-    "neither reactions or rateRules"]
+    "neither reactions or rateRules",
+]
 
 function getcases(case_ids::AbstractVector{<:Integer})
-    map(x -> x[(end - 4):end], .*("0000", string.(case_ids)))
+    return map(x -> x[(end - 4):end], .*("0000", string.(case_ids)))
 end
 
 """
@@ -55,7 +61,7 @@ function setup_settings_txt(text::AbstractString)
             result[key] = Float64(val)
         end
     end
-    result
+    return result
 end
 
 function to_concentrations(sol, ml::SBML.Model, res_df::DataFrame, ia::Dict)
@@ -78,12 +84,14 @@ function to_concentrations(sol, ml::SBML.Model, res_df::DataFrame, ia::Dict)
     sol_df = sol_df[idx, :]
     rename!(sol_df, "timestamp" => "time")
     rename!(sol_df, [rstrip(n, ['(', 't', ')']) for n in names(sol_df)])
-    sol_df[:, [c for c in names(res_df) if c in names(sol_df)]]
+    return sol_df[:, [c for c in names(res_df) if c in names(sol_df)]]
 end
 
 "plots the difference between the suites' reported solution and DiffEq's sol"
-function verify_plot(case::AbstractString, sys, solm::AbstractMatrix, resm::AbstractMatrix,
-                     ts::AbstractVector, logdir::AbstractString)
+function verify_plot(
+        case::AbstractString, sys, solm::AbstractMatrix, resm::AbstractMatrix,
+        ts::AbstractVector, logdir::AbstractString
+    )
     open(joinpath(logdir, case * ".txt"), "w") do file
         write(file, "Reactions:\n")
         write(file, repr(equations(sys)) * "\n")
@@ -92,7 +100,7 @@ function verify_plot(case::AbstractString, sys, solm::AbstractMatrix, resm::Abst
     end
     plt = plot(ts, solm)
     plt = plot!(ts, resm, linestyle = :dot)
-    savefig(joinpath(logdir, case * ".png"))
+    return savefig(joinpath(logdir, case * ".png"))
 end
 
 function read_case(case::AbstractString)
@@ -108,7 +116,7 @@ function read_case(case::AbstractString)
     # Read results
     settings = setup_settings_txt(settings)
     res_df = CSV.read(IOBuffer(results), DataFrame)
-    (sbml, settings, res_df)
+    return (sbml, settings, res_df)
 end
 
 function verify_case(case::AbstractString, logdir::AbstractString; verbose::Bool = true)
@@ -122,10 +130,12 @@ function verify_case(case::AbstractString, logdir::AbstractString; verbose::Bool
         sbml, settings, res_df = read_case(case)
         # Read SBML
         SBMLToolkit.checksupport_string(sbml)
-        ml = readSBMLFromString(sbml, doc -> begin
-            set_level_and_version(3, 2)(doc)
-            convert_simplify_math(doc)
-        end)
+        ml = readSBMLFromString(
+            sbml, doc -> begin
+                set_level_and_version(3, 2)(doc)
+                convert_simplify_math(doc)
+            end
+        )
         # ia = readSBMLFromString(sbml, doc -> begin
         #     set_level_and_version(3, 2)(doc)
         # end)
@@ -137,8 +147,10 @@ function verify_case(case::AbstractString, logdir::AbstractString; verbose::Bool
         rs = complete(ReactionSystem(ml))
         k = 2
 
-        sys = convert(ODESystem, rs; include_zero_odes = true,
-            combinatoric_ratelaws = false)
+        sys = convert(
+            ODESystem, rs; include_zero_odes = true,
+            combinatoric_ratelaws = false
+        )
         if length(ml.events) > 0
             sys = ODESystem(ml)
         end
@@ -148,14 +160,18 @@ function verify_case(case::AbstractString, logdir::AbstractString; verbose::Bool
         k = 4
 
         ts = res_df[:, 1]  # LinRange(settings["start"], settings["duration"], settings["steps"]+1)
-        prob = ODEProblem(ssys, Pair[], (settings["start"], Float64(settings["duration"]));
-            saveat = ts)
+        prob = ODEProblem(
+            ssys, Pair[], (settings["start"], Float64(settings["duration"]));
+            saveat = ts
+        )
         k = 5
 
         algorithm = get(algomap, case, Sundials.CVODE_BDF())
         f = get(special_tolerances, case, 1.0)
-        sol = solve(prob, algorithm; abstol = settings["absolute"] / f,
-            reltol = settings["relative"] / f)
+        sol = solve(
+            prob, algorithm; abstol = settings["absolute"] / f,
+            reltol = settings["relative"] / f
+        )
         diffeq_retcode = sol.retcode
         k = SciMLBase.successful_retcode(diffeq_retcode) ? 6 : k
 
@@ -164,12 +180,12 @@ function verify_case(case::AbstractString, logdir::AbstractString; verbose::Bool
 
         solm = Matrix(sol_df)
         resm = Matrix(res_df[:, [c for c in names(sol_df) if c in names(res_df)]])
-        res = isapprox(solm, resm; atol = 1e-9, rtol = 3e-2)
+        res = isapprox(solm, resm; atol = 1.0e-9, rtol = 3.0e-2)
         res || verify_plot(case, sys, solm, resm, ts, logdir)
     catch e
         err = string(e)
         expected_err = any(occursin.(expected_errs, err))
-        if length(err) > 1000 # cutoff since I got ArgumentError: row size (9088174) too large 
+        if length(err) > 1000 # cutoff since I got ArgumentError: row size (9088174) too large
             err = err[1:1000]
         end
     finally
@@ -180,8 +196,10 @@ end
 
 function verify_all(case_ids::AbstractVector{<:Integer}, logdir::AbstractString; verbose::Bool = true)
     cases = getcases(case_ids)
-    df = DataFrame(case = String[], expected_err = Bool[], res = Bool[],
-        error = String[], k = Int64[], diffeq_retcode = Symbol[])
+    df = DataFrame(
+        case = String[], expected_err = Bool[], res = Bool[],
+        error = String[], k = Int64[], diffeq_retcode = Symbol[]
+    )
     for case in cases
         ret = verify_case(case, logdir; verbose = verbose)
         verbose && @info ret
@@ -190,7 +208,7 @@ function verify_all(case_ids::AbstractVector{<:Integer}, logdir::AbstractString;
     verbose && print(df)
     fn = joinpath(logdir, "test_suite_$(cases[1])-$(cases[end]).csv")
     CSV.write(fn, df)
-    df
+    return df
 end
 
 export verify_all
