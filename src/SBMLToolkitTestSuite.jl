@@ -3,7 +3,7 @@ module SBMLToolkitTestSuite
 using SBMLToolkit
 using SBMLToolkit: convert_simplify_math
 using SBML
-using ModelingToolkit, OrdinaryDiffEq, Sundials
+using ModelingToolkit, OrdinaryDiffEq, OrdinaryDiffEqRosenbrock, Sundials
 using CSV, DataFrames, Downloads, Plots
 
 const algomap = Dict(
@@ -198,7 +198,7 @@ function verify_all(case_ids::AbstractVector{<:Integer}, logdir::AbstractString;
     cases = getcases(case_ids)
     df = DataFrame(
         case = String[], expected_err = Bool[], res = Bool[],
-        error = String[], k = Int64[], diffeq_retcode = Symbol[]
+        error = String[], k = Int64[], diffeq_retcode = Any[]
     )
     for case in cases
         ret = verify_case(case, logdir; verbose = verbose)
