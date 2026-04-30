@@ -5,6 +5,7 @@ authors = ["paulflang", "anandijain"]
 
 [deps]
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
+Catalyst = "479239e8-5488-4da2-87a7-35f2df7eef83"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 Downloads = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
 ModelingToolkit = "961ee093-0014-501f-94e3-6117800e7a78"
@@ -17,16 +18,18 @@ Sundials = "c3572dad-4567-51f8-b174-8c6c989267f4"
 
 [compat]
 CSV = "0.10"
+Catalyst = "14, 15, 16"
 DataFrames = "1"
+Downloads = "1"
 JET = "0.9, 0.10.14, 0.11"
-ModelingToolkit = "8, 9"
+ModelingToolkit = "8, 9, 11.24"
 OrdinaryDiffEq = "6, 7"
 OrdinaryDiffEqRosenbrock = "1, 2"
 Plots = "1"
 SBML = "1"
-SBMLToolkit = "0.1"
-Sundials = "4"
-julia = "1.9"
+SBMLToolkit = "0.1.32"
+Sundials = "4, 6.1"
+julia = "1.10"
 
 [extras]
 JET = "c3a54625-cd67-489e-a8e7-0a5a0ff4e31b"
