@@ -4,7 +4,24 @@ using SBMLToolkit
 using SBMLToolkit: convert_simplify_math
 using SBML
 using ModelingToolkit, OrdinaryDiffEq, OrdinaryDiffEqRosenbrock, Sundials
+using Catalyst: Catalyst
 using CSV, DataFrames, Downloads, Plots
+
+# Catalyst v16 / MTK v11 replaced `convert(ODESystem, rs; ...)` with
+# `Catalyst.ode_model(rs; ...)` and renamed `structural_simplify` to `mtkcompile`.
+# These shims keep the verifier working against both the v14/v15+v9 stack and the
+# v16+v11 stack until the lower bounds are dropped.
+@static if pkgversion(Catalyst) >= v"16"
+    _to_odesystem(rs; kwargs...) = Catalyst.ode_model(rs; kwargs...)
+else
+    _to_odesystem(rs; kwargs...) = convert(ODESystem, rs; kwargs...)
+end
+
+@static if isdefined(ModelingToolkit, :mtkcompile)
+    _simplify_system(sys) = ModelingToolkit.mtkcompile(sys)
+else
+    _simplify_system(sys) = ModelingToolkit.structural_simplify(sys)
+end
 
 const algomap = Dict(
     "00177" => Rodas4(),
@@ -147,8 +164,8 @@ function verify_case(case::AbstractString, logdir::AbstractString; verbose::Bool
         rs = complete(ReactionSystem(ml))
         k = 2
 
-        sys = convert(
-            ODESystem, rs; include_zero_odes = true,
+        sys = _to_odesystem(
+            rs; include_zero_odes = true,
             combinatoric_ratelaws = false
         )
         if length(ml.events) > 0
@@ -156,7 +173,7 @@ function verify_case(case::AbstractString, logdir::AbstractString; verbose::Bool
         end
         k = 3
 
-        ssys = structural_simplify(sys)
+        ssys = _simplify_system(sys)
         k = 4
 
         ts = res_df[:, 1]  # LinRange(settings["start"], settings["duration"], settings["steps"]+1)
