@@ -3,10 +3,6 @@ on:
   - push
   - pull_request
 jobs:
-  test:
-    name: "Tests"
-    uses: "SciML/.github/.github/workflows/tests.yml@v1"
-    with:
-      julia-version: "1"
-      julia-arch: "x64"
+  tests:
+    uses: "SciML/.github/.github/workflows/grouped-tests.yml@v1"
     secrets: "inherit"
