@@ -1,0 +1,7 @@
+[deps]
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+SBMLToolkitTestSuite = "792e603a-1588-414c-b272-614011baa40e"
+
+[compat]
+Documenter = "1"
+SBMLToolkitTestSuite = "1"

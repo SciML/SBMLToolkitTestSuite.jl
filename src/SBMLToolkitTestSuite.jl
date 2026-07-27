@@ -1,11 +1,19 @@
 module SBMLToolkitTestSuite
 
-using SBMLToolkit
-using SBMLToolkit: convert_simplify_math
-using SBML
-using ModelingToolkit, OrdinaryDiffEq, OrdinaryDiffEqRosenbrock, Sundials
-using Catalyst: Catalyst
-using CSV, DataFrames, Downloads, Plots
+using Catalyst: ReactionSystem
+using DataFrames: DataFrame, rename!
+using DelimitedFiles: readdlm, writedlm
+using ModelingToolkit: ODESystem, complete, equations
+using OrdinaryDiffEqRosenbrock: Rodas4, Rodas5
+using Plots: plot, plot!, savefig
+using SBML: readSBMLFromString, set_level_and_version
+using SBMLToolkit: checksupport_file, convert_simplify_math
+using SciMLBase: ODEProblem, solve, successful_retcode
+
+import Catalyst
+import Downloads
+import ModelingToolkit
+import Sundials
 
 # Catalyst v16 / MTK v11 replaced `convert(ODESystem, rs; ...)` with
 # `Catalyst.ode_model(rs; ...)` and renamed `structural_simplify` to `mtkcompile`.
@@ -81,7 +89,7 @@ function setup_settings_txt(text::AbstractString)
     return result
 end
 
-function to_concentrations(sol, ml::SBML.Model, res_df::DataFrame, ia::Dict)
+function to_concentrations(sol, ml, res_df::DataFrame, ia::Dict)
     volumes = [1.0]
     sol_df = DataFrame(sol)
     for sn in names(sol_df)[2:end]
@@ -132,8 +140,25 @@ function read_case(case::AbstractString)
 
     # Read results
     settings = setup_settings_txt(settings)
-    res_df = CSV.read(IOBuffer(results), DataFrame)
+    values, header = readdlm(IOBuffer(results), ','; header = true)
+    res_df = DataFrame(values, vec(header))
     return (sbml, settings, res_df)
+end
+
+function checksupport_string(sbml::AbstractString)
+    return mktemp() do path, io
+        write(io, sbml)
+        close(io)
+        checksupport_file(path)
+    end
+end
+
+function write_results(path::AbstractString, results::DataFrame)
+    open(path, "w") do io
+        writedlm(io, permutedims(string.(names(results))), ',')
+        writedlm(io, Matrix(results), ',')
+    end
+    return path
 end
 
 function verify_case(case::AbstractString, logdir::AbstractString; verbose::Bool = true)
@@ -146,7 +171,7 @@ function verify_case(case::AbstractString, logdir::AbstractString; verbose::Bool
         # Read case
         sbml, settings, res_df = read_case(case)
         # Read SBML
-        SBMLToolkit.checksupport_string(sbml)
+        checksupport_string(sbml)
         ml = readSBMLFromString(
             sbml, doc -> begin
                 set_level_and_version(3, 2)(doc)
@@ -190,10 +215,10 @@ function verify_case(case::AbstractString, logdir::AbstractString; verbose::Bool
             reltol = settings["relative"] / f
         )
         diffeq_retcode = sol.retcode
-        k = SciMLBase.successful_retcode(diffeq_retcode) ? 6 : k
+        k = successful_retcode(diffeq_retcode) ? 6 : k
 
         sol_df = to_concentrations(sol, ml, res_df, ia)
-        CSV.write(joinpath(logdir, "SBMLTk_" * case * ".csv"), sol_df)
+        write_results(joinpath(logdir, "SBMLTk_" * case * ".csv"), sol_df)
 
         solm = Matrix(sol_df)
         resm = Matrix(res_df[:, [c for c in names(sol_df) if c in names(res_df)]])
@@ -211,6 +236,41 @@ function verify_case(case::AbstractString, logdir::AbstractString; verbose::Bool
     end
 end
 
+"""
+    verify_all(case_ids::AbstractVector{<:Integer}, logdir::AbstractString; verbose = true) -> DataFrame
+
+Run SBML semantic-test-suite cases with SBMLToolkit and write per-case diagnostics to
+`logdir`.
+
+# Arguments
+- `case_ids`: integer semantic-test-suite case identifiers. Each identifier is padded to
+  five digits before its SBML resources are downloaded.
+- `logdir`: writable directory for the summary CSV, simulated trajectories, and failure
+  diagnostics.
+
+# Keyword Arguments
+- `verbose = true`: print each case result and the final summary table when `true`.
+
+# Returns
+A `DataFrame` with one row per requested case and the columns `case`, `expected_err`,
+`res`, `error`, `k`, and `diffeq_retcode`. `res` records numerical agreement with the
+reference data. `expected_err` distinguishes known unsupported SBML constructs from
+unexpected failures, while `k` records the last completed verification stage.
+
+# Notes
+This function downloads the official SBML test-suite resources and writes files to
+`logdir`; callers should use it in an environment with network access. Failed numerical
+comparisons produce a text diagnostic and a plot in `logdir`.
+
+# Examples
+```julia
+using SBMLToolkitTestSuite
+
+mktempdir() do logdir
+    verify_all([172], logdir; verbose = false)
+end
+```
+"""
 function verify_all(case_ids::AbstractVector{<:Integer}, logdir::AbstractString; verbose::Bool = true)
     cases = getcases(case_ids)
     df = DataFrame(
@@ -224,7 +284,7 @@ function verify_all(case_ids::AbstractVector{<:Integer}, logdir::AbstractString;
     end
     verbose && print(df)
     fn = joinpath(logdir, "test_suite_$(cases[1])-$(cases[end]).csv")
-    CSV.write(fn, df)
+    write_results(fn, df)
     return df
 end
 
