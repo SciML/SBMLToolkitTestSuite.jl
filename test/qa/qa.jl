@@ -1,6 +1,7 @@
-using SBMLToolkitTestSuite
-using Test
-using JET
+using SciMLTesting, SBMLToolkitTestSuite
+using JET, Test
+
+run_qa(SBMLToolkitTestSuite)
 
 @testset "JET static analysis" begin
     # Test getcases - should be fully type stable
