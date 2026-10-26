@@ -18,7 +18,7 @@ Sundials = "c3572dad-4567-51f8-b174-8c6c989267f4"
 
 [compat]
 Symbolics = "7.39.2"
-Catalyst = "16"
+Catalyst = "16, 17"
 DataFrames = "1"
 DelimitedFiles = "1"
 Downloads = "1"
